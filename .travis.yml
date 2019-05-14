@@ -7,4 +7,6 @@ install:
   - pip install pipenv --upgrade
   - pipenv sync -d
 script:
-  - pytest -v -x -p no:warnings
+  - pytest -v -x -p no:warnings --cov-report term-missing --cov=.
+after_success:
+  - codecov
