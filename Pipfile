@@ -9,6 +9,7 @@ flake8 = "*"
 pre-commit = "*"
 pytest = "*"
 pytest-cov = "*"
+codecov = "*"
 
 [packages]
 
@@ -19,4 +20,4 @@ python_version = "3.7"
 allow_prereleases = true
 
 [scripts]
-test = "pytest -v -x -p no:warnings"
+test = "pytest -v -x -p no:warnings --cov-report term-missing --cov=."
