@@ -3,4 +3,5 @@ repos:
     rev: stable
     hooks:
     - id: black
+      args: [-l79]
       language_version: python3.7
