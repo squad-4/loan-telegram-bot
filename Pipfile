@@ -12,6 +12,8 @@ pytest-cov = "*"
 codecov = "*"
 
 [packages]
+python-telegram-bot = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"
