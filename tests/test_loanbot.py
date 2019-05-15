@@ -15,6 +15,12 @@ def test_start(update, context):
     assert update.message.chat_id.called_once
 
 
+def test_help(update, context):
+    loanbot.help(update, context)
+    assert context.bot.send_message.called_once
+    assert update.message.chat_id.called_once
+
+
 @mock.patch("bot.loanbot.logger")
 def test_error(m_logger, update, context):
     loanbot.error(update, context)
