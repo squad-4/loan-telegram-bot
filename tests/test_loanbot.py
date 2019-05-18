@@ -1,4 +1,5 @@
 from unittest import mock
+from pytest import mark
 
 from bot import loanbot
 
@@ -9,14 +10,10 @@ def test_main_exits_without_error(m_CommandHandler, m_Updater):
     assert not loanbot.main()
 
 
-def test_start(update, context):
-    loanbot.start(update, context)
-    assert context.bot.send_message.called_once
-    assert update.message.chat_id.called_once
-
-
-def test_help(update, context):
-    loanbot.help(update, context)
+@mark.parametrize("cmd", ["start", "help", "unknown"])
+def test_command(cmd, update, context):
+    command = getattr(loanbot, cmd)
+    command(update, context)
     assert context.bot.send_message.called_once
     assert update.message.chat_id.called_once
 
