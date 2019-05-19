@@ -1,21 +1,41 @@
 from unittest import mock
+
 from pytest import mark
 
 from bot import loanbot
 
 
 @mock.patch("bot.loanbot.Updater")
+@mock.patch("bot.loanbot.MessageHandler")
+@mock.patch("bot.loanbot.Filters")
+@mock.patch("bot.loanbot.ConversationHandler")
 @mock.patch("bot.loanbot.CommandHandler")
-def test_main_exits_without_error(m_CommandHandler, m_Updater):
+def test_main_exits_without_error(
+    m_CommandHandler,
+    m_ConversationHandler,
+    m_Filters,
+    m_MessageHandler,
+    m_Updater,
+):
     assert not loanbot.main()
 
 
-@mark.parametrize("cmd", ["start", "help", "unknown"])
-def test_command(cmd, update, context):
+@mark.parametrize(
+    "cmd,exp",
+    [
+        ("start", None),
+        ("help", None),
+        ("unknown", None),
+        ("loan", loanbot.LoanState.GETCLIENT),
+        ("get_client", loanbot.ConversationHandler.END),
+        ("cancel", loanbot.ConversationHandler.END),
+    ],
+)
+def test_command(cmd, exp, update, context):
     command = getattr(loanbot, cmd)
-    command(update, context)
-    assert context.bot.send_message.called_once
-    assert update.message.chat_id.called_once
+    out = command(update, context)
+    assert update.message.reply_text.called_once
+    assert out == exp
 
 
 @mock.patch("bot.loanbot.logger")
