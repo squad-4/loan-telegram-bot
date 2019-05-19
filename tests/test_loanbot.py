@@ -27,7 +27,6 @@ def test_main_exits_without_error(
         ("help", None),
         ("unknown", None),
         ("loan", loanbot.LoanState.GETCLIENT),
-        ("get_client", loanbot.ConversationHandler.END),
         ("cancel", loanbot.ConversationHandler.END),
     ],
 )
@@ -38,9 +37,35 @@ def test_command(cmd, exp, update, context):
     assert out == exp
 
 
+@mock.patch("bot.loanbot.ReplyKeyboardMarkup")
+@mock.patch("bot.loanbot.services")
+def test_get_client_found(
+    m_services, m_ReplyKeyboardMarkup, update, context, client
+):
+    m_services.get_client.return_value = client
+    out = loanbot.get_client(update, context)
+    assert update.message.reply_markdown.called_once
+    assert update.message.reply_text.called_once
+    assert m_ReplyKeyboardMarkup.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+@mock.patch("bot.loanbot.ReplyKeyboardMarkup")
+@mock.patch("bot.loanbot.services")
+def test_get_client_not_found(
+    m_services, m_ReplyKeyboardMarkup, update, context
+):
+    m_services.get_client.return_value = None
+    out = loanbot.get_client(update, context)
+    assert not update.message.reply_markdown.called
+    assert update.message.reply_text.called_once
+    assert not m_ReplyKeyboardMarkup.called
+    assert out == loanbot.ConversationHandler.END
+
+
 @mock.patch("bot.loanbot.logger")
 def test_error(m_logger, update, context):
     loanbot.error(update, context)
     assert m_logger.warning.called_once
     assert update.called_once
-    assert context.error.called_once
+    assert context.called_once
