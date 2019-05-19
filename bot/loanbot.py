@@ -1,6 +1,9 @@
+import json
 import logging
+import re
 from enum import Enum, auto
 
+from telegram import ReplyKeyboardMarkup
 from telegram.ext import (
     CommandHandler,
     ConversationHandler,
@@ -9,7 +12,7 @@ from telegram.ext import (
     Updater,
 )
 
-from bot import settings
+from bot import services, settings
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
@@ -61,8 +64,23 @@ def loan(update, context):
 
 
 def get_client(update, context):
-    update.message.reply_text(update.message.text)
-    return ConversationHandler.END
+    cpf = re.sub("[^0-9]", "", update.message.text)
+    client = services.get_client(cpf)
+
+    if client:
+        context.user_data["client"] = client
+        text = json.dumps(client, indent=2)
+        update.message.reply_markdown(f"```json\n{text}\n```")
+        update.message.reply_text(
+            "This is what I got. Is this the right client?",
+            reply_markup=ReplyKeyboardMarkup(
+                [["Yes", "No"]], one_time_keyboard=True
+            ),
+        )
+        return ConversationHandler.END
+    else:
+        update.message.reply_text("Sorry, I couldn't find the client.")
+        return ConversationHandler.END
 
 
 def cancel(update, context):
