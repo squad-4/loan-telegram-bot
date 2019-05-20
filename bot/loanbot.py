@@ -1,9 +1,10 @@
 import json
 import logging
 import re
+from datetime import datetime
 from enum import Enum, auto
 
-from telegram import ReplyKeyboardMarkup
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import (
     CommandHandler,
     ConversationHandler,
@@ -23,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 class LoanState(Enum):
     GETCLIENT = auto()
+    NEWLOAN = auto()
+    CREATELOAN = auto()
 
 
 def start(update, context):
@@ -77,10 +80,66 @@ def get_client(update, context):
                 [["Yes", "No"]], one_time_keyboard=True
             ),
         )
-        return ConversationHandler.END
+        return LoanState.NEWLOAN
     else:
         update.message.reply_text("Sorry, I couldn't find the client.")
         return ConversationHandler.END
+
+
+def new_loan(update, context):
+    answer = update.message.text
+
+    if answer == "Yes":
+        update.message.reply_text(
+            (
+                "I need the loan amount and the payment term. "
+                "You can also opt for an interest rate, "
+                "by default we apply 5% yr.\n\n"
+                "e.g. $5000.00 in 12 mo"
+            ),
+            reply_markup=ReplyKeyboardRemove(),
+        )
+        return LoanState.CREATELOAN
+
+    update.message.reply_text(
+        "Ok then, please send me another CPF number.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return LoanState.GETCLIENT
+
+
+def create_loan(update, context):
+    values = re.findall(r"\d+\.?\d*", update.message.text)
+    n_values = len(values)
+
+    if 2 <= n_values <= 3:
+        loan = {
+            "amount": float(values[0]),
+            "term": int(values[1]),
+            "rate": float(values[2]) if n_values == 3 else 0.05,
+            "date": datetime.now().isoformat(timespec="seconds"),
+            "client_id": context.user_data["client"]["id"],
+        }
+        context.user_data["loan"] = loan
+        deal = services.post_loan(loan)
+        text = "Sorry, but this client has a pending loan."
+
+        if deal:
+            text = (
+                f"Done! Here's the deal: ${loan['amount']:.02f} paid in "
+                f"{loan['term']} installments of ${deal['installment']:.02f}."
+            )
+
+        update.message.reply_text(text)
+        return ConversationHandler.END
+
+    update.message.reply_text(
+        (
+            "I can't apply for a loan without an amount and term. "
+            "Let's try it again, send me a loan amount and the payment term."
+        )
+    )
+    return LoanState.CREATELOAN
 
 
 def cancel(update, context):
@@ -98,7 +157,13 @@ def main():
         ConversationHandler(
             entry_points=[CommandHandler("loan", loan)],
             states={
-                LoanState.GETCLIENT: [MessageHandler(Filters.text, get_client)]
+                LoanState.GETCLIENT: [
+                    MessageHandler(Filters.text, get_client)
+                ],
+                LoanState.NEWLOAN: [MessageHandler(Filters.text, new_loan)],
+                LoanState.CREATELOAN: [
+                    MessageHandler(Filters.text, create_loan)
+                ],
             },
             fallbacks=[CommandHandler("cancel", cancel)],
         )

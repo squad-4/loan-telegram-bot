@@ -29,3 +29,14 @@ def client():
         "date": "2019-05-18T23:52:15.753070Z",
         "cpf": "70624771687",
     }
+
+
+@pytest.fixture
+def loan():
+    return {
+        "amount": 1000.0,
+        "term": 12,
+        "rate": 0.05,
+        "date": "2019-05-19T20:00:00",
+        "client_id": "1e4c777d-ec05-4b0b-b4be-10cb5a0d1e82",
+    }

@@ -20,3 +20,15 @@ def get_client(cpf):
         return client[0] if client else None
 
     logger.warning("Error retrieving client with CPF %s", cpf)
+
+
+def post_loan(data):
+    url = f"{settings.LOAN_API}/loans/"
+    response = requests.post(url, json=data)
+
+    if response.status_code == 201:
+        return response.json()
+
+    logger.warning(
+        "Error creating a new loan for client %s", data.get("client_id", None)
+    )

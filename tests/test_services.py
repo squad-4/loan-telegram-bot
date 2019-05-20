@@ -25,3 +25,27 @@ def test_get_client_fail(m_logger, m_requests):
     assert m_requests.get.called_once
     assert m_logger.warning.called_once
     assert not client
+
+
+@mock.patch("bot.services.requests")
+def test_post_loan_success(m_requests, loan):
+    data = {"installment": 85.61}
+    response = mock.Mock()
+    response.status_code = 201
+    response.json.return_value = data
+    m_requests.post.return_value = response
+    installment = services.post_loan(loan)
+    assert m_requests.post.called_once
+    assert installment == data
+
+
+@mock.patch("bot.services.requests")
+@mock.patch("bot.loanbot.logger")
+def test_post_loan_fail(m_logger, m_requests, loan):
+    response = mock.Mock()
+    response.status_code = 400
+    m_requests.post.return_value = response
+    installment = services.post_loan(loan)
+    assert m_requests.post.called_once
+    assert m_logger.warning.called_once
+    assert not installment
