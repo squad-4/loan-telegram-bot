@@ -21,7 +21,7 @@ def context():
 @pytest.fixture
 def client():
     return {
-        "id": "1e4c777d-ec05-4b0b-b4be-10cb5a0d1e82",
+        "client_id": "1e4c777d-ec05-4b0b-b4be-10cb5a0d1e82",
         "name": "Herman",
         "surname": "Melville",
         "email": "whale@pequod.ship",
@@ -34,6 +34,7 @@ def client():
 @pytest.fixture
 def loan():
     return {
+        "loan_id": "5a8e9343-3535-4981-b766-4e6a229ccb50",
         "amount": 1000.0,
         "term": 12,
         "rate": 0.05,

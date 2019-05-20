@@ -92,7 +92,7 @@ def test_create_loan_no_values(m_services, update, context):
 @mock.patch("bot.loanbot.services")
 def test_create_loan_success(m_services, update, context):
     update.message.text = "1000.00 12"
-    context.user_data["client"] = {"id": "userid"}
+    context.user_data["client"] = {"client_id": "userid"}
     m_services.post_loan.return_value = {"installment": 85.61}
     out = loanbot.create_loan(update, context)
     assert m_services.post_loan.called_once

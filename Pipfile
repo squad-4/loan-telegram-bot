@@ -15,6 +15,7 @@ codecov = "*"
 python-telegram-bot = "*"
 python-decouple = "*"
 requests = "*"
+dataset = "*"
 
 [requires]
 python_version = "3.7"

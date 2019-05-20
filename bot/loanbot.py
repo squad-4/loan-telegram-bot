@@ -118,7 +118,7 @@ def create_loan(update, context):
             "term": int(values[1]),
             "rate": float(values[2]) if n_values == 3 else 0.05,
             "date": datetime.now().isoformat(timespec="seconds"),
-            "client_id": context.user_data["client"]["id"],
+            "client_id": context.user_data["client"]["client_id"],
         }
         context.user_data["loan"] = loan
         deal = services.post_loan(loan)
