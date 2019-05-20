@@ -26,7 +26,7 @@ def test_main_exits_without_error(
         ("start", None),
         ("help", None),
         ("unknown", None),
-        ("whom", loanbot.LoanState.GETCLIENT),
+        ("whom", loanbot.ConversationState.GETCLIENT),
         ("cancel", loanbot.ConversationHandler.END),
     ],
 )
@@ -47,7 +47,7 @@ def test_get_client_found(
     assert update.message.reply_markdown.called_once
     assert update.message.reply_text.called_once
     assert m_ReplyKeyboardMarkup.called_once
-    assert out == loanbot.LoanState.NEWLOAN
+    assert out == loanbot.ConversationState.ACTION
 
 
 @mock.patch("bot.loanbot.ReplyKeyboardMarkup")
@@ -69,7 +69,7 @@ def test_new_loan_yes(m_ReplyKeyboardRemove, update, context):
     out = loanbot.new_loan(update, context)
     assert update.message.reply_text.called_once
     assert m_ReplyKeyboardRemove.called_once
-    assert out == loanbot.LoanState.CREATELOAN
+    assert out == loanbot.ConversationState.CREATELOAN
 
 
 @mock.patch("bot.loanbot.ReplyKeyboardRemove")
@@ -78,7 +78,7 @@ def test_new_loan_no(m_ReplyKeyboardRemove, update, context):
     out = loanbot.new_loan(update, context)
     assert update.message.reply_text.called_once
     assert m_ReplyKeyboardRemove.called_once
-    assert out == loanbot.LoanState.GETCLIENT
+    assert out == loanbot.ConversationState.GETCLIENT
 
 
 @mock.patch("bot.loanbot.services")
@@ -86,7 +86,7 @@ def test_create_loan_no_values(m_services, update, context):
     out = loanbot.create_loan(update, context)
     assert not m_services.post_loan.called
     assert update.message.reply_text.called_once
-    assert out == loanbot.LoanState.CREATELOAN
+    assert out == loanbot.ConversationState.CREATELOAN
 
 
 @mock.patch("bot.loanbot.services")

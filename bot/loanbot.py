@@ -22,9 +22,9 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-class LoanState(Enum):
+class ConversationState(Enum):
     GETCLIENT = auto()
-    NEWLOAN = auto()
+    ACTION = auto()
     CREATELOAN = auto()
 
 
@@ -63,7 +63,7 @@ def error(update, context):
 
 def whom(update, context):
     update.message.reply_text("Please, send me your CPF number.")
-    return LoanState.GETCLIENT
+    return ConversationState.GETCLIENT
 
 
 def get_client(update, context):
@@ -80,7 +80,7 @@ def get_client(update, context):
                 [["Yes", "No"]], one_time_keyboard=True
             ),
         )
-        return LoanState.NEWLOAN
+        return ConversationState.ACTION
     else:
         update.message.reply_text("Sorry, I couldn't find the client.")
         return ConversationHandler.END
@@ -99,13 +99,13 @@ def new_loan(update, context):
             ),
             reply_markup=ReplyKeyboardRemove(),
         )
-        return LoanState.CREATELOAN
+        return ConversationState.CREATELOAN
 
     update.message.reply_text(
         "Ok then, please send me another CPF number.",
         reply_markup=ReplyKeyboardRemove(),
     )
-    return LoanState.GETCLIENT
+    return ConversationState.GETCLIENT
 
 
 def create_loan(update, context):
@@ -139,7 +139,7 @@ def create_loan(update, context):
             "Let's try it again, send me a loan amount and the payment term."
         )
     )
-    return LoanState.CREATELOAN
+    return ConversationState.CREATELOAN
 
 
 def cancel(update, context):
@@ -157,15 +157,15 @@ def main():
         ConversationHandler(
             entry_points=[CommandHandler("loan", whom)],
             states={
-                LoanState.GETCLIENT: [
+                ConversationState.GETCLIENT: [
                     MessageHandler(
                         Filters.text, get_client, pass_user_data=True
                     )
                 ],
-                LoanState.NEWLOAN: [
+                ConversationState.ACTION: [
                     MessageHandler(Filters.text, new_loan, pass_user_data=True)
                 ],
-                LoanState.CREATELOAN: [
+                ConversationState.CREATELOAN: [
                     MessageHandler(
                         Filters.text, create_loan, pass_user_data=True
                     )
