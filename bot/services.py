@@ -52,7 +52,7 @@ def post_loan(data):
         loan = data
         loan.update(response.json())
         table = db["loans"]
-        table.upsert(loan, ["loan_id"])
+        table.upsert(loan, ["client_id"])
         return loan
 
     logger.warning(

@@ -26,7 +26,7 @@ def test_main_exits_without_error(
         ("start", None),
         ("help", None),
         ("unknown", None),
-        ("loan", loanbot.LoanState.GETCLIENT),
+        ("whom", loanbot.LoanState.GETCLIENT),
         ("cancel", loanbot.ConversationHandler.END),
     ],
 )
