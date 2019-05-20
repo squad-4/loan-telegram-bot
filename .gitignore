@@ -106,3 +106,7 @@ venv.bak/
 # Ignore IDEs settings
 .vscode/
 .idea/
+
+# Ignore SQLite local database files
+*.db
+*.sqlite
