@@ -61,7 +61,7 @@ def error(update, context):
     logger.warning("Update '%s' caused error '%s'", update, context.error)
 
 
-def loan(update, context):
+def whom(update, context):
     update.message.reply_text("Please, send me your CPF number.")
     return LoanState.GETCLIENT
 
@@ -155,14 +155,20 @@ def main():
     dp.add_handler(CommandHandler("help", help))
     dp.add_handler(
         ConversationHandler(
-            entry_points=[CommandHandler("loan", loan)],
+            entry_points=[CommandHandler("loan", whom)],
             states={
                 LoanState.GETCLIENT: [
-                    MessageHandler(Filters.text, get_client)
+                    MessageHandler(
+                        Filters.text, get_client, pass_user_data=True
+                    )
                 ],
-                LoanState.NEWLOAN: [MessageHandler(Filters.text, new_loan)],
+                LoanState.NEWLOAN: [
+                    MessageHandler(Filters.text, new_loan, pass_user_data=True)
+                ],
                 LoanState.CREATELOAN: [
-                    MessageHandler(Filters.text, create_loan)
+                    MessageHandler(
+                        Filters.text, create_loan, pass_user_data=True
+                    )
                 ],
             },
             fallbacks=[CommandHandler("cancel", cancel)],
