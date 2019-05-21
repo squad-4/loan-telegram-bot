@@ -67,6 +67,16 @@ def get_loan(client_id):
     return table.find_one(client_id=client_id) or {}
 
 
+def post_payment(loan_id, data):
+    url = f"{settings.LOAN_API}/loans/{loan_id}/payments/"
+    response = requests.post(url, json=data)
+
+    if response.status_code == 201:
+        return response.json()
+
+    logger.warning("Error creating a new payment for loan %s", loan_id)
+
+
 def get_balance(loan_id):
     date = datetime.now().isoformat(timespec="seconds")
     url = f"{settings.LOAN_API}/loans/{loan_id}/balance/?date={date}"
