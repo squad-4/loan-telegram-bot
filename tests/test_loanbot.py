@@ -148,3 +148,63 @@ def test_error(m_logger, update, context):
     assert m_logger.warning.called_once
     assert update.called_once
     assert context.called_once
+
+
+@mock.patch("bot.loanbot.ReplyKeyboardRemove")
+def test_new_payment_no(m_ReplyKeyboardRemove, update, context, client):
+    context.user_data["client"] = client
+    update.message.text = "No"
+
+    out = loanbot.new_payment(update, context)
+
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationState.GETCLIENT
+
+
+@mock.patch("bot.loanbot.ReplyKeyboardRemove")
+@mock.patch("bot.loanbot.services")
+def test_new_payment_no_loan(
+    m_services, m_ReplyKeyboardRemove, update, context, client
+):
+    context.user_data["client"] = client
+    update.message.text = "Yes"
+    m_services.get_loan.return_value = None
+
+    out = loanbot.new_payment(update, context)
+
+    assert m_services.get_loan.called_once
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+@mock.patch("bot.loanbot.ReplyKeyboardRemove")
+@mock.patch("bot.loanbot.services")
+def test_new_payment_success(
+    m_services, m_ReplyKeyboardRemove, update, context, client, loan
+):
+    context.user_data["client"] = client
+    update.message.text = "Yes"
+    m_services.get_loan.return_value = loan
+
+    out = loanbot.new_payment(update, context)
+
+    assert m_services.get_loan.called_once
+    assert update.message.reply_markdown.called_once
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationState.CREATEPAYMENT
+
+
+@mock.patch("bot.loanbot.ReplyKeyboardRemove")
+@mock.patch("bot.loanbot.services")
+def test_create_payment_success(
+    m_services, m_ReplyKeyboardRemove, update, context, loan, payment
+):
+    update.message.text = "Pay"
+    context.user_data["loan"] = loan
+    m_services.post_payment.return_value = payment
+
+    out = loanbot.create_payment(update, context)
+
+    assert m_services.post_payment.called_once
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END

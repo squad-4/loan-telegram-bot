@@ -1,4 +1,3 @@
-import json
 import logging
 import re
 from datetime import datetime
@@ -26,6 +25,7 @@ class ConversationState(Enum):
     GETCLIENT = auto()
     ACTION = auto()
     CREATELOAN = auto()
+    CREATEPAYMENT = auto()
 
 
 def start(update, context):
@@ -42,6 +42,7 @@ def help(update, context):
         (
             "/start - show greeting message\n"
             "/loan - create a loan\n"
+            "/payment - perform a payment\n"
             "/balance - show loan balance\n"
             "/cancel - cancel current operation\n"
             "/help - show command list"
@@ -73,10 +74,16 @@ def get_client(update, context):
 
     if client:
         context.user_data["client"] = client
-        text = json.dumps(client, indent=2)
-        update.message.reply_markdown(f"```json\n{text}\n```")
+        text = (
+            "CLIENT DETAILS\n\n"
+            f"Name: {client.get('name', None)} {client.get('surname', None)}\n"
+            f"Email: {client.get('email', None)}\n"
+            f"Phone: {client.get('telephone', None)}\n"
+            f"CPF: {client.get('cpf', None)}"
+        )
+        update.message.reply_markdown(f"```\n{text}\n```")
         update.message.reply_text(
-            "This is what I got. Is this the right client?",
+            "This is what I got. Is it the right client?",
             reply_markup=ReplyKeyboardMarkup(
                 [["Yes", "No"]], one_time_keyboard=True
             ),
@@ -143,6 +150,64 @@ def create_loan(update, context):
     return ConversationState.CREATELOAN
 
 
+def new_payment(update, context):
+    client = context.user_data.get("client", None)
+    answer = update.message.text
+
+    if answer == "Yes" and client:
+        loan = services.get_loan(client.get("client_id", None))
+
+        if loan:
+            context.user_data["loan"] = loan
+            text = (
+                "LOAN DETAILS\n\n"
+                f"Amount: ${loan.get('amount', None):.02f}\n"
+                f"Term: {loan.get('term', None)} mo\n"
+                f"Rate: {loan.get('rate', None)} yr\n"
+                f"Installment: ${loan.get('installment', None):.02f}"
+            )
+            update.message.reply_markdown(f"```\n{text}\n```")
+            update.message.reply_text(
+                "What would you like to do?",
+                reply_markup=ReplyKeyboardMarkup(
+                    [["Pay", "Skip"]], one_time_keyboard=True
+                ),
+            )
+            return ConversationState.CREATEPAYMENT
+        else:
+            text = f"No pending loan found for CPF {client['cpf']}."
+            update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
+            return ConversationHandler.END
+
+    update.message.reply_text(
+        "Ok then, please send me another CPF number.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return ConversationState.GETCLIENT
+
+
+def create_payment(update, context):
+    answer = update.message.text
+    loan = context.user_data.get("loan", None)
+
+    if loan:
+        payment = {
+            "payment": "made" if answer == "Pay" else "missed",
+            "date": datetime.now().isoformat(timespec="seconds"),
+            "amount": loan.get("installment", None),
+        }
+        op = services.post_payment(loan.get("loan_id", None), payment)
+        text = "Sorry, but I couldn't send you payment."
+
+        if op:
+            text = {"made": "Payment made.", "missed": "Skipped payment."}[
+                op.get("payment", "made")
+            ]
+
+    update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
+    return ConversationHandler.END
+
+
 def get_balance(update, context):
     client = context.user_data.get("client", None)
     answer = update.message.text
@@ -197,6 +262,29 @@ def main():
                 ConversationState.CREATELOAN: [
                     MessageHandler(
                         Filters.text, create_loan, pass_user_data=True
+                    )
+                ],
+            },
+            fallbacks=[CommandHandler("cancel", cancel)],
+        )
+    )
+    dp.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("payment", whom)],
+            states={
+                ConversationState.GETCLIENT: [
+                    MessageHandler(
+                        Filters.text, get_client, pass_user_data=True
+                    )
+                ],
+                ConversationState.ACTION: [
+                    MessageHandler(
+                        Filters.text, new_payment, pass_user_data=True
+                    )
+                ],
+                ConversationState.CREATEPAYMENT: [
+                    MessageHandler(
+                        Filters.text, create_payment, pass_user_data=True
                     )
                 ],
             },

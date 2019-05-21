@@ -40,4 +40,16 @@ def loan():
         "rate": 0.05,
         "date": "2019-05-19T20:00:00",
         "client_id": "1e4c777d-ec05-4b0b-b4be-10cb5a0d1e82",
+        "installment": 85.61,
+    }
+
+
+@pytest.fixture
+def payment():
+    return {
+        "id": "7ced9651-d4fa-4e35-8544-dfdc02d6333e",
+        "date": "2019-06-01T20:00:00",
+        "payment": "made",
+        "amount": 85.61,
+        "loan": "5a8e9343-3535-4981-b766-4e6a229ccb50",
     }
