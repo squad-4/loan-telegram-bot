@@ -42,6 +42,7 @@ def help(update, context):
         (
             "/start - show greeting message\n"
             "/loan - create a loan\n"
+            "/balance - show loan balance\n"
             "/cancel - cancel current operation\n"
             "/help - show command list"
         )
@@ -142,6 +143,34 @@ def create_loan(update, context):
     return ConversationState.CREATELOAN
 
 
+def get_balance(update, context):
+    client = context.user_data.get("client", None)
+    answer = update.message.text
+
+    if answer == "Yes" and client:
+        loan = services.get_loan(client.get("client_id", None))
+
+        if loan:
+            text = "Sorry, I couldn't fetch the balance."
+            balance = services.get_balance(loan.get("loan_id", None))
+            context.user_data["balance"] = balance
+
+            if balance:
+                text = f"The current balance is ${balance['balance']}."
+
+        else:
+            text = f"No pending loan found for CPF {client['cpf']}."
+
+        update.message.reply_text(text, reply_markup=ReplyKeyboardRemove())
+        return ConversationHandler.END
+
+    update.message.reply_text(
+        "Ok then, please send me another CPF number.",
+        reply_markup=ReplyKeyboardRemove(),
+    )
+    return ConversationState.GETCLIENT
+
+
 def cancel(update, context):
     update.message.reply_text("Ok, no problem, come back whenever you want.")
     return ConversationHandler.END
@@ -168,6 +197,24 @@ def main():
                 ConversationState.CREATELOAN: [
                     MessageHandler(
                         Filters.text, create_loan, pass_user_data=True
+                    )
+                ],
+            },
+            fallbacks=[CommandHandler("cancel", cancel)],
+        )
+    )
+    dp.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("balance", whom)],
+            states={
+                ConversationState.GETCLIENT: [
+                    MessageHandler(
+                        Filters.text, get_client, pass_user_data=True
+                    )
+                ],
+                ConversationState.ACTION: [
+                    MessageHandler(
+                        Filters.text, get_balance, pass_user_data=True
                     )
                 ],
             },

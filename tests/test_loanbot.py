@@ -100,6 +100,48 @@ def test_create_loan_success(m_services, update, context):
     assert out == loanbot.ConversationHandler.END
 
 
+@mock.patch("bot.loanbot.services")
+def test_get_balance_success(m_services, update, context, client, loan):
+    update.message.text = "Yes"
+    context.user_data["client"] = client
+    m_services.get_loan.return_value = loan
+    m_services.get_balance.return_value = {"balance": 89.56}
+
+    out = loanbot.get_balance(update, context)
+
+    assert m_services.get_loan.called_once
+    assert m_services.get_balance.called_once
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+@mock.patch("bot.loanbot.services")
+def test_get_balance_fail(m_services, update, context, client):
+    update.message.text = "Yes"
+    context.user_data["client"] = client
+    m_services.get_loan.return_value = None
+
+    out = loanbot.get_balance(update, context)
+
+    assert m_services.get_loan.called_once
+    assert not m_services.get_balance.called
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+@mock.patch("bot.loanbot.services")
+def test_get_balance_wrong_cpf(m_services, update, context, client):
+    update.message.text = "No"
+    context.user_data["client"] = client
+
+    out = loanbot.get_balance(update, context)
+
+    assert not m_services.get_loan.called
+    assert not m_services.get_balance.called
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationState.GETCLIENT
+
+
 @mock.patch("bot.loanbot.logger")
 def test_error(m_logger, update, context):
     loanbot.error(update, context)
