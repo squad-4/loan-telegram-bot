@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 
 import dataset
 import requests
@@ -21,6 +22,7 @@ db = dataset.connect(settings.DATABASE_URL, engine_kwargs=engine_config)
 
 def get_client(cpf):
     table = db["clients"]
+    cpf = cpf if cpf else "00000000000"
     client = table.find_one(cpf=cpf) or {}
 
     if client:
@@ -33,7 +35,7 @@ def get_client(cpf):
         client = response.json()
 
         if not client:
-            return None
+            return
 
         client = client[0]
         id = client.pop("id", None)
@@ -58,3 +60,19 @@ def post_loan(data):
     logger.warning(
         "Error creating a new loan for client %s", data.get("client_id", None)
     )
+
+
+def get_loan(client_id):
+    table = db["loans"]
+    return table.find_one(client_id=client_id) or {}
+
+
+def get_balance(loan_id):
+    date = datetime.now().isoformat(timespec="seconds")
+    url = f"{settings.LOAN_API}/loans/{loan_id}/balance/?date={date}"
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        return response.json()
+
+    logger.warning("Error retrieving balance for loan %s", loan_id)

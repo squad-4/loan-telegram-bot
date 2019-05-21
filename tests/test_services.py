@@ -133,3 +133,45 @@ def test_post_loan_fail(m_logger, m_requests, m_db, loan):
     assert not table.upsert.called
     assert m_logger.warning.called_once
     assert not installment
+
+
+@mock.patch("bot.services.db")
+def test_get_loan(m_db, client, loan):
+    table = mock.Mock()
+    table.find_one.return_value = loan
+    db = {"loans": table}
+    m_db.__getitem__.side_effect = db.__getitem__
+    m_db.__iter__.side_effect = db.__iter__
+
+    out = services.get_loan(client.get("client_id", None))
+
+    assert m_db.find_one.called_once
+    assert out == loan
+
+
+@mock.patch("bot.services.requests")
+def test_get_balance_success(m_requests, loan):
+    data = {"balance": 89.56}
+    response = mock.Mock()
+    response.status_code = 200
+    response.json.return_value = data
+    m_requests.get.return_value = response
+
+    out = services.get_balance(loan.get("loan_id", None))
+
+    assert m_requests.get.called_once
+    assert out == data
+
+
+@mock.patch("bot.services.requests")
+@mock.patch("bot.loanbot.logger")
+def test_get_balance_fail(m_logger, m_requests, loan):
+    response = mock.Mock()
+    response.status_code = 400
+    m_requests.get.return_value = response
+
+    out = services.get_balance(loan.get("loan_id", None))
+
+    assert m_requests.get.called_once
+    assert m_logger.warning.called_once
+    assert not out
