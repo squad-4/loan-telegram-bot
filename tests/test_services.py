@@ -203,3 +203,31 @@ def test_post_payment_fail(m_requests, loan, payment):
     assert m_requests.post.called_once
     assert not response.json.called
     assert not out
+
+
+@mock.patch("bot.services.requests")
+def test_post_client_success(m_requests, client):
+    data = client
+    response = mock.Mock()
+    response.status_code = 201
+    response.json.return_value = data
+    m_requests.post.return_value = response
+
+    out = services.post_client(client)
+
+    assert m_requests.post.called_once
+    assert response.json.called_once
+    assert out == data
+
+
+@mock.patch("bot.services.requests")
+def test_post_client_fail(m_requests, client):
+    response = mock.Mock()
+    response.status_code = 400
+    m_requests.post.return_value = response
+
+    out = services.post_client(client)
+
+    assert m_requests.post.called_once
+    assert not response.json.called
+    assert not out

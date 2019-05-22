@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 class ConversationState(Enum):
     GETCLIENT = auto()
     ACTION = auto()
+    CREATECLIENT = auto()
     CREATELOAN = auto()
     CREATEPAYMENT = auto()
 
@@ -41,6 +42,7 @@ def help(update, context):
     update.message.reply_text(
         (
             "/start - show greeting message\n"
+            "/client - create a client\n"
             "/loan - create a loan\n"
             "/payment - perform a payment\n"
             "/balance - show loan balance\n"
@@ -64,7 +66,7 @@ def error(update, context):
 
 
 def whom(update, context):
-    update.message.reply_text("Please, send me your CPF number.")
+    update.message.reply_text("Please, send me client CPF number.")
     return ConversationState.GETCLIENT
 
 
@@ -76,10 +78,10 @@ def get_client(update, context):
         context.user_data["client"] = client
         text = (
             "CLIENT DETAILS\n\n"
-            f"Name: {client.get('name', None)} {client.get('surname', None)}\n"
-            f"Email: {client.get('email', None)}\n"
-            f"Phone: {client.get('telephone', None)}\n"
-            f"CPF: {client.get('cpf', None)}"
+            f"Name: {client.get('name', '')} {client.get('surname', '')}\n"
+            f"Email: {client.get('email', '')}\n"
+            f"Phone: {client.get('telephone', '')}\n"
+            f"CPF: {client.get('cpf', '')}"
         )
         update.message.reply_markdown(f"```\n{text}\n```")
         update.message.reply_text(
@@ -92,6 +94,52 @@ def get_client(update, context):
     else:
         update.message.reply_text("Sorry, I couldn't find the client.")
         return ConversationHandler.END
+
+
+def new_client(update, context):
+    update.message.reply_text(
+        (
+            "Please, send me the client full name and CPF number.\n\n"
+            "e.g. Herman Melville 54644385131"
+        )
+    )
+    return ConversationState.CREATECLIENT
+
+
+def create_client(update, context):
+    error = (
+        "Something is not right. Try again but remember to send "
+        "the first and last name followed by the CPF number, "
+        "they all space separated, and the CPF must have only numbers."
+    )
+
+    try:
+        fullname, cpf = update.message.text.rsplit(maxsplit=1)
+    except ValueError:
+        update.message.reply_text(error)
+        return ConversationHandler.END
+
+    try:
+        name, surname = fullname.split(maxsplit=1)
+    except ValueError:
+        update.message.reply_text(error)
+        return ConversationHandler.END
+
+    if not re.match(r"^\d+$", cpf):
+        update.message.reply_text(error)
+        return ConversationHandler.END
+
+    data = {
+        "name": name,
+        "surname": surname,
+        "email": "auto@mail.bot",
+        "cpf": cpf,
+    }
+    client = services.post_client(data)
+    text = "Done!" if client else "Sorry, I couldn't save the client."
+    update.message.reply_text(text)
+
+    return ConversationHandler.END
 
 
 def new_loan(update, context):
@@ -161,10 +209,10 @@ def new_payment(update, context):
             context.user_data["loan"] = loan
             text = (
                 "LOAN DETAILS\n\n"
-                f"Amount: ${loan.get('amount', None):.02f}\n"
-                f"Term: {loan.get('term', None)} mo\n"
-                f"Rate: {loan.get('rate', None)} yr\n"
-                f"Installment: ${loan.get('installment', None):.02f}"
+                f"Amount: ${loan.get('amount', 0):.02f}\n"
+                f"Term: {loan.get('term', 1)} mo\n"
+                f"Rate: {loan.get('rate', '')} yr\n"
+                f"Installment: ${loan.get('installment', 0):.02f}"
             )
             update.message.reply_markdown(f"```\n{text}\n```")
             update.message.reply_text(
@@ -247,6 +295,19 @@ def main():
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help))
+    dp.add_handler(
+        ConversationHandler(
+            entry_points=[CommandHandler("client", new_client)],
+            states={
+                ConversationState.CREATECLIENT: [
+                    MessageHandler(
+                        Filters.text, create_client, pass_user_data=True
+                    )
+                ]
+            },
+            fallbacks=[CommandHandler("cancel", cancel)],
+        )
+    )
     dp.add_handler(
         ConversationHandler(
             entry_points=[CommandHandler("loan", whom)],
