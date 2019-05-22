@@ -20,6 +20,20 @@ engine_config = (
 db = dataset.connect(settings.DATABASE_URL, engine_kwargs=engine_config)
 
 
+def post_client(data):
+    url = f"{settings.LOAN_API}/clients/"
+    response = requests.post(url, json=data)
+
+    if response.status_code == 201:
+        client = data
+        client.update(response.json())
+        table = db["clients"]
+        table.upsert(client, ["client_id"])
+        return client
+
+    logger.warning("Error saving client with CPF %s", data.get("cpf", None))
+
+
 def get_client(cpf):
     table = db["clients"]
     cpf = cpf if cpf else "00000000000"

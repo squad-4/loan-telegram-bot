@@ -208,3 +208,49 @@ def test_create_payment_success(
     assert m_services.post_payment.called_once
     assert update.message.reply_text.called_once
     assert out == loanbot.ConversationHandler.END
+
+
+def test_new_client(update, context):
+    out = loanbot.new_client(update, context)
+
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationState.CREATECLIENT
+
+
+def test_create_client_invalid_params(update, context):
+    update.message.text = "Bilbo"
+
+    out = loanbot.create_client(update, context)
+
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+def test_create_client_invalid_name(update, context):
+    update.message.text = "Bilbo 31977345131"
+
+    out = loanbot.create_client(update, context)
+
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+def test_create_client_invalid_cpf(update, context):
+    update.message.text = "Bilbo Baggins Burglar"
+
+    out = loanbot.create_client(update, context)
+
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
+
+
+@mock.patch("bot.loanbot.services")
+def test_create_client_success(m_services, update, context, client):
+    update.message.text = "Herman Melville 70624771687"
+    m_services.post_client.return_value = client
+
+    out = loanbot.create_client(update, context)
+
+    assert m_services.post_client.called_once
+    assert update.message.reply_text.called_once
+    assert out == loanbot.ConversationHandler.END
