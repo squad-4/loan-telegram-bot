@@ -24,10 +24,10 @@
         },
         "asn1crypto": {
             "hashes": [
-                "sha256:0b199f211ae690df3db4fd6c1c4ff976497fb1da689193e368eedbadc53d9292",
-                "sha256:bca90060bd995c3f62c4433168eab407e44bdbdb567b3f3a396a676c1a4c4a3f"
+                "sha256:5abe83e773026162e4869f4ac16edf7554f661e8cc0bb6d2be3bc6915456731b",
+                "sha256:8f3f9470d4ba7aa53afb00278dc26aac22dc3a0d4ed1335fd772f034e094401e"
             ],
-            "version": "==1.0.1"
+            "version": "==1.1.0"
         },
         "certifi": {
             "hashes": [
@@ -107,9 +107,9 @@
         },
         "future": {
             "hashes": [
-                "sha256:67045236dcfd6816dc439556d009594abf643e5eb48992e36beac09c2ca659b8"
+                "sha256:6142ef79e2416e432931d527452a1cab3aa4a754a0a53d25b2589f79e1106f34"
             ],
-            "version": "==0.17.1"
+            "version": "==0.18.0"
         },
         "idna": {
             "hashes": [
@@ -220,10 +220,10 @@
         },
         "python-telegram-bot": {
             "hashes": [
-                "sha256:43a67c1f6da444e1baabb960467d1524f81c71166b1235c5bf6d225332c01c3e",
-                "sha256:c7c56ea3bf9874e39397633a35478b9bed44ba35db49cfd3ce97d331edef82a9"
+                "sha256:346d42771c2b23384c59f5f41e05bd7e801a0ce118d8dcb95209bb73d5f694c5",
+                "sha256:3beee89cba3bc3217566c96199f04776dd25f541ac8992da27fd247b2d208a14"
             ],
-            "version": "==12.1.1"
+            "version": "==12.2.0"
         },
         "requests": {
             "hashes": [
@@ -242,9 +242,9 @@
         },
         "sqlalchemy": {
             "hashes": [
-                "sha256:272a835758908412e75e87f75dd0179a51422715c125ce42109632910526b1fd"
+                "sha256:0f0768b5db594517e1f5e1572c73d14cf295140756431270d89496dc13d5e46c"
             ],
-            "version": "==1.3.9"
+            "version": "==1.3.10"
         },
         "tornado": {
             "hashes": [
