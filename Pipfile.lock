@@ -246,10 +246,10 @@
         },
         "python-telegram-bot": {
             "hashes": [
-                "sha256:327186c56469216207dcdf8706892e58e0a62e51ef46f5143268e387bbb4edc3",
-                "sha256:7eebed539ccacf77896cff9e41d1f68746b8ff3ca4da1e2e59285e9c749cb050"
+                "sha256:5feebb08ed08d7b71ceb4c05372b9f6a21d83994b5018db111509765881c8282",
+                "sha256:9a887a5057d1eb4fede9d04f736d53365cdb1cda1035c0f4fecb645cfd59c456"
             ],
-            "version": "==12.8"
+            "version": "==13.1"
         },
         "requests": {
             "hashes": [
